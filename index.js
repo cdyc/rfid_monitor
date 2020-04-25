@@ -1,19 +1,22 @@
 let SerialPort = require("serialport"); //引入模块
+let Readline = require("@serialport/parser-readline");
+let parser = new Readline();
+
 let fs = require("fs");
-var ini = require("ini");
+let ini = require("ini");
 
 const { exec } = require("child_process");
-var ks = require("node-key-sender");
+let ks = require("node-key-sender");
 
-var readFile = function () {
-  var lib = ini.parse(fs.readFileSync("config.ini", "utf-8"));
+let readFile = function () {
+  let lib = ini.parse(fs.readFileSync("config.ini", "utf-8"));
   lib.baudRate = Number(lib.baudRate || "9600");
   lib.dataBits = Number(lib.dataBits || "8");
   lib.stopBits = Number(lib.stopBits || "1");
   return lib;
 };
 
-var lib = readFile();
+let lib = readFile();
 let port = new SerialPort(lib.port, lib, false);
 
 const clipboard = (str) => {
@@ -22,25 +25,19 @@ const clipboard = (str) => {
   ks.sendCombination(["control", "v"]);
 };
 
-port.open((e) => {
-  console.log(port.path + " 端口打开成功。");
-  let res = "";
-  port.on("data", function (data) {
-    let str = data.toString("ascii");
-    str = str.replace(/\r|\n|\@|\&|\*/g, "");
-    if (str.length > 0) {
-      // 卡号不足12位时，继续拼接字符串
-      if (res.length < 12) {
-        res += str;
-      } else {
-        res = str;
-      }
+port.pipe(parser);
 
-      // 卡号12位时，读取完毕
-      if (res.length === 12) {
-        console.log("读取卡号：", res);
-        clipboard(res);
-      }
-    }
-  });
+port.open(function () {
+  console.log(port.path + " 端口打开成功。", new Date());
+});
+
+parser.on("data", function (str) {
+  str = str.replace(/\r|\n|\@|\&|\*/g, "");
+  console.log("读取卡号：", str);
+  clipboard(str);
+});
+
+// Open errors will be emitted as an error event
+port.on("error", function (err) {
+  console.log("Error: ", err.message);
 });

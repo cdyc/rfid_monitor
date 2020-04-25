@@ -1,6 +1,8 @@
 # RFID 射频读卡器
 
-# serialport 读取 RFID 数据
+## serialport 读取 RFID 数据
+
+http://npmjs.com/package/serialport
 
 ## node-key-sender 用于模拟发送键盘事件
 
