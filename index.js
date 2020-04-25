@@ -1,10 +1,25 @@
 let SerialPort = require("serialport"); //引入模块
-let lib = require("./config");
-let port = new SerialPort(lib.portName, lib.config, false);
+let fs = require("fs");
+var ini = require("ini");
+
 const { exec } = require("child_process");
+var ks = require("node-key-sender");
+
+var readFile = function () {
+  var lib = ini.parse(fs.readFileSync("config.ini", "utf-8"));
+  lib.baudRate = Number(lib.baudRate || "9600");
+  lib.dataBits = Number(lib.dataBits || "8");
+  lib.stopBits = Number(lib.stopBits || "1");
+  return lib;
+};
+
+var lib = readFile();
+let port = new SerialPort(lib.port, lib, false);
 
 const clipboard = (str) => {
   exec("clip").stdin.end(str);
+  // 粘贴
+  ks.sendCombination(["control", "v"]);
 };
 
 port.open((e) => {
