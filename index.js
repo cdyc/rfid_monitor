@@ -1,43 +1,22 @@
 let SerialPort = require("serialport"); //引入模块
-let Readline = require("@serialport/parser-readline");
-let parser = new Readline();
+let lib = require("./src/config").config;
+let device = require("./src/device");
 
-let fs = require("fs");
-let ini = require("ini");
+SerialPort.list().then((ports) => {
+  // 默认
+  let res = ports[0];
 
-const { exec } = require("child_process");
-let ks = require("node-key-sender");
+  let portInfo = {
+    端口号: res.path,
+    厂家: res.manufacturer,
+    序列号: res.serialNumber,
+    pnpId: res.pnpId,
+    vendorId: res.vendorId,
+    产品id: res.productId,
+  };
+  console.log("监测到以下端口：\r\n", portInfo);
 
-let readFile = function () {
-  let lib = ini.parse(fs.readFileSync("config.ini", "utf-8"));
-  lib.baudRate = Number(lib.baudRate || "9600");
-  lib.dataBits = Number(lib.dataBits || "8");
-  lib.stopBits = Number(lib.stopBits || "1");
-  return lib;
-};
+  lib.port = lib.port || res.path;
 
-let lib = readFile();
-let port = new SerialPort(lib.port, lib, false);
-
-const clipboard = (str) => {
-  exec("clip").stdin.end(str);
-  // 粘贴
-  ks.sendCombination(["control", "v"]);
-};
-
-port.pipe(parser);
-
-port.open(function () {
-  console.log(port.path + " 端口打开成功。", new Date());
-});
-
-parser.on("data", function (str) {
-  str = str.replace(/\r|\n|\@|\&|\*/g, "");
-  console.log("读取卡号：", str);
-  clipboard(str);
-});
-
-// Open errors will be emitted as an error event
-port.on("error", function (err) {
-  console.log("Error: ", err.message);
+  device.init(lib);
 });
