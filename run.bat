@@ -1,5 +1,8 @@
 REM npm start
 REM @pause
 
-pm2 flush
-pm2 start index.js -i 1
+call ./bash/remove.bat
+call ./bash/flush.bat
+call ./bash/run.bat
+call ./bash/log.bat 
+pause
