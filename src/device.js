@@ -8,13 +8,15 @@ module.exports.init = function (lib) {
 
   port.pipe(parser);
 
-  port.open(function () {
+  port.open(function (e) {
+    if (e) console.log(e.message);
+
     console.log("\r\n\r\n" + port.path + " 端口打开成功。", new Date());
   });
 
   parser.on("data", function (str) {
     str = str.replace(/\r|\n|\@|\&|\*/g, "");
-    console.log("读取卡号：", str);
+    console.log(new Date(), "读取卡号：", str);
     clipboard(str);
   });
 
@@ -22,4 +24,6 @@ module.exports.init = function (lib) {
   port.on("error", function (err) {
     console.log("Error: ", err.message);
   });
+
+  return port;
 };
