@@ -3,7 +3,7 @@ let Readline = require("@serialport/parser-readline");
 let parser = new Readline();
 let clipboard = require("./clipboard").default;
 
-module.exports.init = function (lib) {
+module.exports.init = function (lib, isOpened) {
   let port = new SerialPort(lib.port, lib, false);
 
   port.pipe(parser);
@@ -13,6 +13,11 @@ module.exports.init = function (lib) {
 
     console.log("\r\n\r\n" + port.path + " 端口打开成功。", new Date());
   });
+
+  // 如果打开过，退出
+  if (isOpened) {
+    return;
+  }
 
   parser.on("data", function (str) {
     str = str.replace(/\r|\n|\@|\&|\*/g, "");
@@ -24,6 +29,4 @@ module.exports.init = function (lib) {
   port.on("error", function (err) {
     console.log("Error: ", err.message);
   });
-
-  return port;
 };

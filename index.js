@@ -2,7 +2,7 @@ let SerialPort = require("serialport"); //引入模块
 let lib = require("./src/config").config;
 let device = require("./src/device");
 
-const init = async (inited) => {
+const init = async (inited, isOpened) => {
   // 端口列表
   let ports = await SerialPort.list();
   if (ports.length === 0) {
@@ -29,12 +29,18 @@ const init = async (inited) => {
 
   lib.port = lib.port || res.path;
 
-  device.init(lib);
+  device.init(lib, isOpened);
   return true;
 };
 
 let inited = 0;
+
+let isOpened = false;
+
 setInterval(async () => {
   // 轮询查询端口状态，自动重连
-  inited = await init(inited);
+  inited = await init(inited, isOpened);
+  if (inited && !isOpened) {
+    isOpened = true;
+  }
 }, 10 * 1000);
